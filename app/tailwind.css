@@ -4,9 +4,15 @@
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
+    @apply bg-white dark:bg-gray-950;
 
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
-  }
+    @layer components {
+        .btn {
+            @apply p-2 bg-blue-600 hover:bg-blue-800 transition-all rounded;
+        }
+    };
+
+    @media (prefers-color-scheme: dark) {
+        color-scheme: dark;
+    }
 }
