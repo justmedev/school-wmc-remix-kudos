@@ -32,8 +32,6 @@ export default function Login() {
   return (
     <>
       <Card title="Login">
-        {data?.errors.username ?? ""}
-
         <Form method="post">
           <FormField name="username" label="Username" errorHint={data?.errors.username} className="mb-1 w-full"/>
 
