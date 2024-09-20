@@ -2,6 +2,7 @@ import { json, TypedResponse } from '@remix-run/node';
 import jwt from 'jsonwebtoken';
 import { config } from "dotenv";
 import * as process from "node:process";
+import { passwordIsValid } from "~/.server/auth.db";
 
 config();
 
@@ -18,8 +19,8 @@ export interface ResponseError {
   error: string;
 }
 
-export function login(username: string, password: string): TypedResponse<AuthResponse> {
-  if (password !== "password") throw json({ error: 'Wrong password' }, { status: 401, statusText: 'Unauthorized' });
+export async function login(username: string, password: string): Promise<TypedResponse<AuthResponse>> {
+  if (!await passwordIsValid(username, password)) throw json({ error: 'Wrong username or password' }, { status: 401, statusText: 'Unauthorized' });
 
   const payload = {
     username,

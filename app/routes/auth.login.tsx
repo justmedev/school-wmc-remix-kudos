@@ -36,7 +36,7 @@ export async function action({
   console.log((await getSession(request.headers.get("Cookie"))))
 
   const session = await getSession(request.headers.get("Cookie"));
-  session.set("jwt", (await login(username as string, password as string).json()).jwt)
+  session.set("jwt", (await (await login(username as string, password as string)).json()).jwt)
 
   return json({ data: null, errors: {} }, {
     headers: {
@@ -72,7 +72,6 @@ export async function loader({
 export default function Login() {
   const data = useActionData<ActionResponse>();
   const dataError = Object.hasOwn(data?.data ?? {}, "error") ? (data?.data as ResponseError).error : null;
-
   const [passwordVisible, setPasswordVisible] = useState(false);
 
   return (
@@ -84,7 +83,7 @@ export default function Login() {
           <FormField name="username" label="Username" errorHint={data?.errors?.username} className="mb-1 w-full"/>
 
           <FormField name="password" label="Password" type={passwordVisible ? 'text' : 'password'} errorHint={data?.errors.password} className="w-full">
-            <FormField.AppendInner onClick={() => setPasswordVisible(!passwordVisible)}>
+            <FormField.AppendInner type="button" onClick={() => setPasswordVisible(!passwordVisible)}>
               {passwordVisible ? <FaEye/> : <FaEyeSlash/>}
             </FormField.AppendInner>
           </FormField>

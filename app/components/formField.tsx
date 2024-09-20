@@ -1,4 +1,11 @@
-import { ChangeEventHandler, FormEventHandler, HTMLInputTypeAttribute, ReactNode, useState } from "react";
+import {
+  ButtonHTMLAttributes,
+  ChangeEventHandler, DetailedHTMLProps,
+  FormEventHandler,
+  HTMLInputTypeAttribute,
+  ReactNode,
+  useState
+} from "react";
 
 interface FormFieldProps {
   name?: string;
@@ -42,8 +49,8 @@ export default function FormField(props: FormFieldProps) {
   );
 }
 
-FormField.AppendInner = function FormFieldAppendInner(props: { children: ReactNode, onClick: () => void }) {
+FormField.AppendInner = function FormFieldAppendInner(props: { children: ReactNode, onClick: () => void, type?: "button" | "reset" | "submit" | undefined }) {
   return (
-    <button className="p-2" onClick={props.onClick}>{props.children}</button>
+    <button className="p-2" type={props.type} onClick={props.onClick}>{props.children}</button>
   );
 }
