@@ -44,6 +44,6 @@ export default function FormField(props: FormFieldProps) {
 
 FormField.AppendInner = function FormFieldAppendInner(props: { children: ReactNode, onClick: () => void }) {
   return (
-      <button className="p-2" onClick={props.onClick}>{props.children}</button>
+    <button className="p-2" onClick={props.onClick}>{props.children}</button>
   );
 }

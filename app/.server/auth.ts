@@ -2,7 +2,6 @@ import { json, TypedResponse } from '@remix-run/node';
 import jwt from 'jsonwebtoken';
 import { config } from "dotenv";
 import * as process from "node:process";
-import { commitSession, getSession } from "~/sessions";
 
 config();
 
