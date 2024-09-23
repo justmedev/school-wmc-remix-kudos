@@ -4,7 +4,7 @@ import { Form, redirect, useActionData, useNavigate, useRouteError } from "@remi
 import { ActionFunctionArgs, json, LoaderFunctionArgs, TypedResponse } from "@remix-run/node";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
 import React, { useState } from "react";
-import { AuthResponse, login, ResponseError } from "~/.server/auth";
+import { AuthResponse, ResponseError } from "~/.server/auth";
 import { commitSession, getSession } from "~/sessions";
 import { createUserWithPassword } from "~/.server/auth.db";
 

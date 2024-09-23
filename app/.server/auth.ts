@@ -20,7 +20,10 @@ export interface ResponseError {
 }
 
 export async function login(username: string, password: string): Promise<TypedResponse<AuthResponse>> {
-  if (!await passwordIsValid(username, password)) throw json({ error: 'Wrong username or password' }, { status: 401, statusText: 'Unauthorized' });
+  if (!await passwordIsValid(username, password)) throw json({ error: 'Wrong username or password' }, {
+    status: 401,
+    statusText: 'Unauthorized'
+  });
 
   const payload = {
     username,

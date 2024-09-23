@@ -24,7 +24,7 @@ model User {
   // profileId Int      @unique
 }
 
-//model Profile {
+// model Profile {
 //  id        Int    @id @default(autoincrement())
 //  firstName String
 //  lastName  String
