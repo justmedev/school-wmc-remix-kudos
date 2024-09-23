@@ -3,7 +3,7 @@ import FormField from "~/components/formField";
 import { Form, redirect, useActionData, useNavigate, useRouteError } from "@remix-run/react";
 import { ActionFunctionArgs, json, LoaderFunctionArgs, TypedResponse } from "@remix-run/node";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
-import React, { useState } from "react";
+import { useState } from "react";
 import { AuthResponse, login, ResponseError } from "~/.server/auth";
 import { commitSession, getSession } from "~/sessions";
 
