@@ -1,7 +1,7 @@
-import { json, LoaderFunctionArgs } from "@remix-run/node";
+import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/node";
 import { isJWTValid } from "~/.server/auth";
-import { redirect } from "@remix-run/react";
-import { getSession } from "~/sessions";
+import { Form, redirect } from "@remix-run/react";
+import { destroySession, getSession } from "~/sessions";
 
 export const loader = async ({
                                request,
@@ -13,8 +13,29 @@ export const loader = async ({
 
   return json({ ok: true });
 };
+
+
+
+export const action = async ({
+                               request,
+                             }: ActionFunctionArgs) => {
+  const session = await getSession(
+    request.headers.get("Cookie")
+  );
+  return redirect("/auth/login", {
+    headers: {
+      "Set-Cookie": await destroySession(session),
+    },
+  });
+};
+
 export default function ProtectedHome() {
   return (
-    <div>This page is protected and shall not be accessed by non-logged-in users!</div>
+    <>
+      <div>This page is protected and shall not be accessed by non-logged-in users!</div>
+      <Form method="post">
+        <button className="btn">Logout</button>
+      </Form>
+    </>
   );
 }

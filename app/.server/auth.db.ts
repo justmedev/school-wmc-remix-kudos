@@ -19,7 +19,7 @@ export async function passwordIsValid(username: string, plaintextPassword: strin
  * @param plaintextPassword the password of the user in plaintext format
  * @returns the newly created [User] object on success, or, on fail, [null].
  */
-export async function createUserWithPassword(data: Omit<User, 'password'>, plaintextPassword: string): Promise<User | null> {
+export async function createUserWithPassword(data: Omit<User, 'password' | 'createdAt' | 'updatedAt' | 'id'>, plaintextPassword: string): Promise<User | null> {
   const hashedPassword = await argon2.hash(plaintextPassword);
   const user: User | null = null;
   try {
@@ -30,6 +30,7 @@ export async function createUserWithPassword(data: Omit<User, 'password'>, plain
       }
     })
   } catch (e) {
+    console.error(e);
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === 'P2002') {
         console.log(`There is a unique constraint violation, a new user cannot be created with email "${data.email}"!`)
