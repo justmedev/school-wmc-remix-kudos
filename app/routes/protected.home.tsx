@@ -5,7 +5,9 @@ import { getSession } from "~/sessions";
 import "~/components/chatStyle.css";
 import FormField from "~/components/formField";
 import { FaSearch } from "react-icons/fa";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Card from "~/components/card";
+import { FaPaperPlane } from "react-icons/fa6";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const session = await getSession(request.headers.get("Cookie"));
@@ -29,11 +31,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   });
 };
 
+interface DialogData {
+  user: { username: string; birthday: Date; profilePicture: null; };
+}
 
 export default function ProtectedHome() {
   const { users, self } = useLoaderData<typeof loader>()
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const dialog = useRef<HTMLDialogElement | null>(null);
+  const [dialogData, setDialogData] = useState<DialogData | null>(null)
 
+  useEffect(() => {
+    if (dialogData) dialog.current?.showModal()
+    else dialog.current?.close()
+  }, [dialogData])
 
   return (
     <>
@@ -67,7 +77,9 @@ export default function ProtectedHome() {
 
         <div className="bg-gray-600 flex flex-col items-center">
           {users.map((user, i) =>
-            <div className={`w-full flex justify-center ${i % 2 === 0 ? "bg-gray-500" : ""} py-2 select-none cursor-pointer`} title={user.username} key={i} onClick={() => {setDialogOpen(true)}}>
+            <div className={`w-full flex justify-center ${i % 2 === 0 ? "bg-gray-500" : ""} py-2 select-none cursor-pointer`} title={user.username} key={i} onClick={() => {
+              setDialogData({ user })
+            }}>
               <div className="bg-blue-400 rounded-full py-7 px-8 font-mono">
                 {getShort(user.username)}
               </div>
@@ -89,6 +101,22 @@ export default function ProtectedHome() {
           </Form>
         </div>
       </div>
+
+      <dialog ref={dialog} className="rounded">
+        <Card title={`Send Kudos to ${dialogData?.user?.username}`}>
+          <Form>
+            FORM
+          </Form>
+
+          <Card.Actions>
+            <button className="btn w-full" onClick={() => dialog.current?.close()}>Cancel</button>
+            <button className="btn w-full flex items-center justify-center gap-2" onClick={() => dialog.current?.close()}>
+              Send
+              <FaPaperPlane/>
+            </button>
+          </Card.Actions>
+        </Card>
+      </dialog>
     </>
   );
 }
