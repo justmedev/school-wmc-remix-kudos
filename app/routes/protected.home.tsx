@@ -1,8 +1,10 @@
 import { json, LoaderFunctionArgs } from "@remix-run/node";
 import { isJWTValid } from "~/.server/auth";
-import { redirect, useLoaderData } from "@remix-run/react";
+import { Form, redirect, useLoaderData } from "@remix-run/react";
 import { getSession } from "~/sessions";
 import "~/components/chatStyle.css";
+import FormField from "~/components/formField";
+import { FaSearch } from "react-icons/fa";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const session = await getSession(request.headers.get("Cookie"));
@@ -83,29 +85,45 @@ export default function ProtectedHome() {
   return (
     <>
       <div className="grid grid-cols-3 grid-rows-2 h-full w-full">
-        <div className="bg-amber-700 col-span-1 flex justify-center items-center">
+        <div className="bg-gray-800 text-blue-700 font-bold text-xl col-span-1 flex justify-center items-center">
           My Team
         </div>
 
-        <div className="bg-purple-300 col-span-2 flex justify-between p-4 items-center">
-          <div>SEARCH & FILTER</div>
+        <div className="bg-gray-800 col-span-2 flex justify-between p-4 items-center">
+          <div className="w-1/2">
+            <Form className="flex flex-row gap-2.5 w-full">
+              <FormField placeholder="Search a message or name" className="grow">
+                <FormField.AppendInner onClick={() => null}>
+                  <FaSearch/>
+                </FormField.AppendInner>
+              </FormField>
+
+              <select className="bg-gray-700 rounded text-gray-400 outline-none p-2 w-1/3 focus:text-white focus:bg-gradient-to-r focus:from-blue-900 focus:outline-indigo-500">
+                <option value="date">Sort: Date</option>
+                <option value="sender">Sort: Sender Name</option>
+                <option value="emoji">Sort: Emoji</option>
+              </select>
+            </Form>
+          </div>
           <div>PROFILE PIC</div>
         </div>
 
-        <div className="bg-green-700">
+        <div className="bg-gray-700">
           TEAM
         </div>
 
-        <div className="bg-red-700">
+        <div className="bg-gray-700 row-span-2">
           MAIN
         </div>
 
-        <div className="bg-indigo-700">
+        <div className="bg-gray-800 row-span-2">
           RECENT
         </div>
 
-        <div className="bg-cyan-400">
-          Sign out
+        <div className="bg-gray-800 flex items-center justify-center">
+          <Form action="/actions/auth/logout" method="POST">
+            <button className="btn" type="submit">Sign out</button>
+          </Form>
         </div>
       </div>
     </>
