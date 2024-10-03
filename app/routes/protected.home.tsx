@@ -5,6 +5,7 @@ import { getSession } from "~/sessions";
 import "~/components/chatStyle.css";
 import FormField from "~/components/formField";
 import { FaSearch } from "react-icons/fa";
+import { useState } from "react";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const session = await getSession(request.headers.get("Cookie"));
@@ -20,7 +21,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     },
     users: [
       {
-        username: "StefanLenk",
+        username: "Stefan Lenk",
         birthday: new Date(),
         profilePicture: null
       }
@@ -31,56 +32,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function ProtectedHome() {
   const { users, self } = useLoaderData<typeof loader>()
+  const [dialogOpen, setDialogOpen] = useState(false);
 
-  /*
-  <div className="grid grid-cols-1 h-full">
-        <div className="col-span-2 bg-blue-500">04</div>
-        <div className="bg-red-500 w-1/4 row-span-12">
-          <div className="bg-green-800 p-4 py-5 justify-between flex items-center">
-            <div className="flex flex-row items-center gap-8">
-              {
-                !self.profilePicture
-                  ? <div className="rounded-full w-14 h-14 bg-white"/>
-                  : <img src="/" alt="Profile" className="rounded-full w-1.5"/>
-              }
-
-              <span>{self.username}</span>
-            </div>
-            <Form method="post" action="/actions/auth/logout">
-              <button className="btn">Logout</button>
-            </Form>
-          </div>
-        </div>
-        <div className="col-span-2 bg-blue-500">04</div>
-      </div>
-   */
-
-  /*
-  <div className="flex flex-col h-full w-full">
-        <div className="bg-green-400 w-full"> CHAT </div>
-        <div className="w-full h-full flex flex-grow">
-          <div className="bg-green-800 h-full">
-            <div className="flex items-center px-4 py-2 gap-4 bg-gray-800">
-              <div className="flex items-center gap-4">
-                {
-                  !self.profilePicture
-                    ? <div className="rounded-full w-14 h-14 bg-white"/>
-                    : <img src="/" alt="Profile" className="rounded-full w-1.5"/>
-                }
-
-                <span>{self.username}</span>
-              </div>
-              <Form method="post" action="/actions/auth/logout">
-                <button className="btn">Logout</button>
-              </Form>
-            </div>
-          </div>
-
-          <div className="bg-red-800 w-full h-full flex-grow"></div>
-        </div>
-        <div className="bg-red-400 w-full"> MSGBOX</div>
-      </div>
-   */
 
   return (
     <>
@@ -105,11 +58,21 @@ export default function ProtectedHome() {
               </select>
             </Form>
           </div>
-          <div>PROFILE PIC</div>
+          <div>
+            <div className="bg-blue-400 rounded-full py-3 px-4 font-mono select-none" title={self.username}>
+              {getShort(self.username)}
+            </div>
+          </div>
         </div>
 
-        <div className="bg-gray-700">
-          TEAM
+        <div className="bg-gray-600 flex flex-col items-center">
+          {users.map((user, i) =>
+            <div className={`w-full flex justify-center ${i % 2 === 0 ? "bg-gray-500" : ""} py-2 select-none cursor-pointer`} title={user.username} key={i} onClick={() => {setDialogOpen(true)}}>
+              <div className="bg-blue-400 rounded-full py-7 px-8 font-mono">
+                {getShort(user.username)}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="bg-gray-700 row-span-2">
@@ -129,3 +92,9 @@ export default function ProtectedHome() {
     </>
   );
 }
+
+function getShort(s: string): string {
+  const splitted = s.split(" ");
+  return splitted.length > 1 ? splitted[0][0] + splitted[1][0] : splitted[0][0] + splitted[0][1];
+}
+
