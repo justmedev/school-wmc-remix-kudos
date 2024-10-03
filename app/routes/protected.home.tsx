@@ -1,7 +1,8 @@
-import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/node";
+import { json, LoaderFunctionArgs } from "@remix-run/node";
 import { isJWTValid } from "~/.server/auth";
-import { Form, redirect } from "@remix-run/react";
-import { destroySession, getSession } from "~/sessions";
+import { redirect, useLoaderData } from "@remix-run/react";
+import { getSession } from "~/sessions";
+import "~/components/chatStyle.css";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const session = await getSession(request.headers.get("Cookie"));
@@ -9,31 +10,103 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     throw redirect("/auth/login")
   }
 
-  return json({ ok: true });
-};
-
-
-export const action = async ({
-                               request,
-                             }: ActionFunctionArgs) => {
-  const session = await getSession(
-    request.headers.get("Cookie")
-  );
-  return redirect("/auth/login", {
-    headers: {
-      "Set-Cookie": await destroySession(session),
+  return json({
+    self: {
+      username: "justmedev",
+      birthday: new Date(),
+      profilePicture: null
     },
+    users: [
+      {
+        username: "StefanLenk",
+        birthday: new Date(),
+        profilePicture: null
+      }
+    ]
   });
 };
 
+
 export default function ProtectedHome() {
+  const { users, self } = useLoaderData<typeof loader>()
+
+  /*
+  <div className="grid grid-cols-1 h-full">
+        <div className="col-span-2 bg-blue-500">04</div>
+        <div className="bg-red-500 w-1/4 row-span-12">
+          <div className="bg-green-800 p-4 py-5 justify-between flex items-center">
+            <div className="flex flex-row items-center gap-8">
+              {
+                !self.profilePicture
+                  ? <div className="rounded-full w-14 h-14 bg-white"/>
+                  : <img src="/" alt="Profile" className="rounded-full w-1.5"/>
+              }
+
+              <span>{self.username}</span>
+            </div>
+            <Form method="post" action="/actions/auth/logout">
+              <button className="btn">Logout</button>
+            </Form>
+          </div>
+        </div>
+        <div className="col-span-2 bg-blue-500">04</div>
+      </div>
+   */
+
+  /*
+  <div className="flex flex-col h-full w-full">
+        <div className="bg-green-400 w-full"> CHAT </div>
+        <div className="w-full h-full flex flex-grow">
+          <div className="bg-green-800 h-full">
+            <div className="flex items-center px-4 py-2 gap-4 bg-gray-800">
+              <div className="flex items-center gap-4">
+                {
+                  !self.profilePicture
+                    ? <div className="rounded-full w-14 h-14 bg-white"/>
+                    : <img src="/" alt="Profile" className="rounded-full w-1.5"/>
+                }
+
+                <span>{self.username}</span>
+              </div>
+              <Form method="post" action="/actions/auth/logout">
+                <button className="btn">Logout</button>
+              </Form>
+            </div>
+          </div>
+
+          <div className="bg-red-800 w-full h-full flex-grow"></div>
+        </div>
+        <div className="bg-red-400 w-full"> MSGBOX</div>
+      </div>
+   */
+
   return (
     <>
-      <div className="flex flex-col gap-2 justify-center items-center h-full">
-        <div>This page is protected and shall not be accessed by non-logged-in users!</div>
-        <Form method="post">
-          <button className="btn shadow-[0_0_160px_-15px_rgba(0,0,0,0.7)] hover:shadow-none shadow-yellow-50">Logout</button>
-        </Form>
+      <div className="grid grid-cols-3 grid-rows-2 h-full w-full">
+        <div className="bg-amber-700 col-span-1 flex justify-center items-center">
+          My Team
+        </div>
+
+        <div className="bg-purple-300 col-span-2 flex justify-between p-4 items-center">
+          <div>SEARCH & FILTER</div>
+          <div>PROFILE PIC</div>
+        </div>
+
+        <div className="bg-green-700">
+          TEAM
+        </div>
+
+        <div className="bg-red-700">
+          MAIN
+        </div>
+
+        <div className="bg-indigo-700">
+          RECENT
+        </div>
+
+        <div className="bg-cyan-400">
+          Sign out
+        </div>
       </div>
     </>
   );

@@ -1,6 +1,6 @@
 import Card from "~/components/card";
 import FormField from "~/components/formField";
-import { Form, redirect, useActionData, useNavigate, useRouteError } from "@remix-run/react";
+import { Form, Link, redirect, useActionData, useNavigate, useRouteError } from "@remix-run/react";
 import { ActionFunctionArgs, json, LoaderFunctionArgs, TypedResponse } from "@remix-run/node";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
 import { useState } from "react";
@@ -78,6 +78,10 @@ export default function Login() {
     <>
       <Card title="Login">
         <div hidden={dataError === null}>{dataError}</div>
+
+        <div className="-mt-3 text-gray-400 mb-3">
+          or <Link to="/auth/register" className="text-blue-500 hover:text-indigo-400 transition-all">Register</Link>
+        </div>
 
         <Form method="post">
           <FormField name="username" label="Username" errorHint={data?.errors?.username} className="mb-1 w-full"/>

@@ -1,0 +1,4 @@
+.grid {
+    grid-template-columns: [team] 15rem  [main] auto [recent] 15rem;
+    grid-template-rows:    [nav] 3.75rem [main] auto [messagebox] 3rem;
+}

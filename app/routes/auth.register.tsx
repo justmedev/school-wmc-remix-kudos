@@ -1,9 +1,9 @@
 import Card from "~/components/card";
 import FormField from "~/components/formField";
-import { Form, redirect, useActionData, useNavigate, useRouteError } from "@remix-run/react";
+import { Form, Link, redirect, useActionData, useNavigate, useRouteError } from "@remix-run/react";
 import { ActionFunctionArgs, json, LoaderFunctionArgs, TypedResponse } from "@remix-run/node";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
-import React, { useState } from "react";
+import { useState } from "react";
 import { AuthResponse, ResponseError } from "~/.server/auth";
 import { commitSession, getSession } from "~/sessions";
 import { createUserWithPassword } from "~/.server/auth.db";
@@ -79,6 +79,10 @@ export default function Login() {
     <>
       <Card title="Register">
         <div hidden={dataError === null}>{dataError}</div>
+
+        <div className="-mt-3 text-gray-400 mb-3">
+          or <Link to="/auth/login" className="text-blue-500 hover:text-indigo-400 transition-all">Login</Link>
+        </div>
 
         <Form method="post">
           <FormField name="email" label="Email" errorHint={data?.errors?.username} className="mb-1 w-full"/>
