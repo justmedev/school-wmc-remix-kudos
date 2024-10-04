@@ -4,7 +4,7 @@ import { Form, redirect, useLoaderData } from "@remix-run/react";
 import { getSession } from "~/sessions";
 import "~/components/chatStyle.css";
 import FormField from "~/components/formField";
-import { FaSearch } from "react-icons/fa";
+import { FaSave, FaSearch } from "react-icons/fa";
 import { useEffect, useRef, useState } from "react";
 import Card from "~/components/card";
 import { FaPaperPlane } from "react-icons/fa6";
@@ -38,14 +38,25 @@ interface DialogData {
 }
 
 export default function ProtectedHome() {
-  const { users, self } = useLoaderData<typeof loader>() as unknown as { users: Profile[], self: User & {profile: Profile} }
+  const { users, self } = useLoaderData<typeof loader>() as unknown as {
+    users: Profile[],
+    self: User & { profile: Profile }
+  }
   const dialog = useRef<HTMLDialogElement | null>(null);
   const [dialogData, setDialogData] = useState<DialogData | null>(null)
+
+  const selfDialog = useRef<HTMLDialogElement | null>(null);
+  const [selfDialogOpen, setSelfDialogOpen] = useState(false);
 
   useEffect(() => {
     if (dialogData) dialog.current?.showModal()
     else dialog.current?.close()
   }, [dialogData])
+
+  useEffect(() => {
+    if (selfDialogOpen) selfDialog.current?.showModal();
+    else selfDialog.current?.close()
+  }, [selfDialogOpen]);
 
   return (
     <>
@@ -71,9 +82,9 @@ export default function ProtectedHome() {
             </Form>
           </div>
           <div>
-            <div className="bg-blue-400 rounded-full py-3 px-4 font-mono select-none" title={self.email}>
-              {getShort(self.email)}
-            </div>
+            <button className="bg-blue-400 rounded-full py-3 px-4 font-mono select-none" title={fullName(self.profile)} onClick={() => setSelfDialogOpen(true)}>
+              {getShort(fullName(self.profile))}
+            </button>
           </div>
         </div>
 
@@ -111,16 +122,40 @@ export default function ProtectedHome() {
           </Form>
 
           <Card.Actions>
-            <button className="btn w-full" onClick={() => dialog.current?.close()}>Cancel</button>
-            <button className="btn w-full flex items-center justify-center gap-2" onClick={() => dialog.current?.close()}>
+            <button className="btn w-full" onClick={() => setDialogData(null)}>Cancel</button>
+            <button className="btn w-full flex items-center justify-center gap-2" onClick={() => setDialogData(null)}>
               Send
               <FaPaperPlane/>
             </button>
           </Card.Actions>
         </Card>
       </dialog>
+
+      <dialog ref={selfDialog} className="rounded">
+        <Card title="My Profile">
+          <Form action="/actions/profile" method="PUT" navigate={false}>
+            <FormField name="firstName" placeholder="First Name" label="First Name" defaultValue={self.profile.firstName}/>
+            <FormField name="lastName" placeholder="Last Name" label="Last Name" defaultValue={self.profile.lastName}/>
+            <FormField name="birtday" placeholder="Birthday" label="Birthday" defaultValue={formatDate(new Date(self.profile.birtday))}/>
+
+            <Card.Actions>
+              <button className="btn w-full" onClick={() => setSelfDialogOpen(false)}>Cancel</button>
+              <button className="btn w-full flex items-center justify-center gap-2" onClick={() => setSelfDialogOpen(false)}>
+                Submit
+                <FaSave/>
+              </button>
+            </Card.Actions>
+          </Form>
+        </Card>
+      </dialog>
     </>
   );
+}
+
+const intlDateFormatter = new Intl.DateTimeFormat("de", { dateStyle: "short" })
+
+function formatDate(d: Date): string {
+  return intlDateFormatter.format(d);
 }
 
 function fullName(profile: Profile) {
@@ -129,7 +164,6 @@ function fullName(profile: Profile) {
 
 function getShort(s: string): string {
   const splitted = s.split(" ");
-  console.log(splitted, splitted.length)
   return splitted.length > 1 ? splitted[0][0] + splitted[1][0] : splitted[0][0] + (splitted[0][1] ?? "?");
 }
 
