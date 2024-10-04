@@ -6,7 +6,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa6";
 import { useState } from "react";
 import { AuthResponse, login, ResponseError } from "~/.server/auth";
 import { commitSession, getSession } from "~/sessions";
-import { createUserWithPassword, userCreateSchema } from "~/.server/auth.db";
+import { createUserWithPassword, userCreateSchema } from "~/.server/db.auth";
 import { SubmissionResult, useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
 

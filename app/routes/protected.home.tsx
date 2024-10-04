@@ -1,5 +1,5 @@
 import { json, LoaderFunctionArgs } from "@remix-run/node";
-import { isJWTValid } from "~/.server/auth";
+import { getUserByJWT, isJWTValid } from "~/.server/auth";
 import { Form, redirect, useLoaderData } from "@remix-run/react";
 import { getSession } from "~/sessions";
 import "~/components/chatStyle.css";
@@ -8,6 +8,8 @@ import { FaSearch } from "react-icons/fa";
 import { useEffect, useRef, useState } from "react";
 import Card from "~/components/card";
 import { FaPaperPlane } from "react-icons/fa6";
+import { prisma } from "~/.server/prisma";
+import { Profile, User } from "@prisma/client";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const session = await getSession(request.headers.get("Cookie"));
@@ -15,28 +17,28 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     throw redirect("/auth/login")
   }
 
-  return json({
-    self: {
-      username: "justmedev",
-      birthday: new Date(),
-      profilePicture: null
-    },
-    users: [
-      {
-        username: "Stefan Lenk",
-        birthday: new Date(),
-        profilePicture: null
+  const user = await getUserByJWT(session.get("jwt")!);
+  if (!user) throw redirect("/auth/login")
+  const others = await prisma.profile.findMany({
+    where: {
+      id: {
+        not: user.profileId
       }
-    ]
+    }
+  });
+
+  return json({
+    self: user,
+    users: others,
   });
 };
 
 interface DialogData {
-  user: { username: string; birthday: Date; profilePicture: null; };
+  profile: Profile;
 }
 
 export default function ProtectedHome() {
-  const { users, self } = useLoaderData<typeof loader>()
+  const { users, self } = useLoaderData<typeof loader>() as unknown as { users: Profile[], self: User & {profile: Profile} }
   const dialog = useRef<HTMLDialogElement | null>(null);
   const [dialogData, setDialogData] = useState<DialogData | null>(null)
 
@@ -69,21 +71,21 @@ export default function ProtectedHome() {
             </Form>
           </div>
           <div>
-            <div className="bg-blue-400 rounded-full py-3 px-4 font-mono select-none" title={self.username}>
-              {getShort(self.username)}
+            <div className="bg-blue-400 rounded-full py-3 px-4 font-mono select-none" title={self.email}>
+              {getShort(self.email)}
             </div>
           </div>
         </div>
 
         <div className="bg-gray-600 flex flex-col items-center">
-          {users.map((user, i) =>
-            <div className={`w-full flex justify-center ${i % 2 === 0 ? "bg-gray-500" : ""} py-2 select-none cursor-pointer`} title={user.username} key={i} onClick={() => {
-              setDialogData({ user })
+          {users.map((profile, i) =>
+            <button className={`w-full flex justify-center ${i % 2 === 0 ? "bg-gray-500" : ""} py-2 select-none cursor-pointer`} title={fullName(profile)} key={i} onClick={() => {
+              setDialogData({ profile: profile })
             }}>
               <div className="bg-blue-400 rounded-full py-7 px-8 font-mono">
-                {getShort(user.username)}
+                {getShort(fullName(profile))}
               </div>
-            </div>
+            </button>
           )}
         </div>
 
@@ -103,7 +105,7 @@ export default function ProtectedHome() {
       </div>
 
       <dialog ref={dialog} className="rounded">
-        <Card title={`Send Kudos to ${dialogData?.user?.username}`}>
+        <Card title={`Send Kudos to ${dialogData ? fullName(dialogData!.profile) : "?"}`}>
           <Form>
             FORM
           </Form>
@@ -121,8 +123,13 @@ export default function ProtectedHome() {
   );
 }
 
+function fullName(profile: Profile) {
+  return `${profile.firstName ?? ""} ${profile.lastName ?? ""}`
+}
+
 function getShort(s: string): string {
   const splitted = s.split(" ");
-  return splitted.length > 1 ? splitted[0][0] + splitted[1][0] : splitted[0][0] + splitted[0][1];
+  console.log(splitted, splitted.length)
+  return splitted.length > 1 ? splitted[0][0] + splitted[1][0] : splitted[0][0] + (splitted[0][1] ?? "?");
 }
 

@@ -27,7 +27,7 @@ model User {
 
 model Profile {
   id    Int     @id @unique @default(autoincrement())
-  user  User?
+  profile  User?
   kudos Kudos[]
 
   firstName      String
