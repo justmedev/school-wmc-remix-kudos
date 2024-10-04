@@ -1,52 +1,45 @@
 import Card from "~/components/card";
 import FormField from "~/components/formField";
-import { Form, Link, redirect, useActionData, useNavigate, useRouteError } from "@remix-run/react";
+import { Link, redirect, useActionData, useNavigate, useRouteError } from "@remix-run/react";
 import { ActionFunctionArgs, json, LoaderFunctionArgs, TypedResponse } from "@remix-run/node";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
 import { useState } from "react";
-import { AuthResponse, ResponseError } from "~/.server/auth";
+import { AuthResponse, login, ResponseError } from "~/.server/auth";
 import { commitSession, getSession } from "~/sessions";
-import { createUserWithPassword } from "~/.server/auth.db";
-
-interface FormErrors {
-  username?: string;
-  password?: string;
-}
+import { createUserWithPassword, userCreateSchema } from "~/.server/auth.db";
+import { SubmissionResult, useForm } from "@conform-to/react";
+import { parseWithZod } from "@conform-to/zod";
 
 interface ActionResponse {
-  errors: FormErrors;
-  data: AuthResponse | ResponseError | null;
+  data: AuthResponse | ResponseError | SubmissionResult | null;
 }
 
 export async function action({
                                request,
-                             }: ActionFunctionArgs): Promise<Promise<TypedResponse<ActionResponse>> | null> {
-  const body = await request.formData();
-  const errors: FormErrors = {};
+                             }: ActionFunctionArgs): Promise<TypedResponse<ActionResponse> | null> {
+  const formData = await request.formData();
+  const submission = parseWithZod(formData, { schema: userCreateSchema });
+  if (submission.status !== 'success') {
+    return json({ data: submission.reply() });
+  }
+  console.log("Validation passed! Trying register...");
 
-  const email = body.get("email");
-  if (!email || typeof email !== "string" || email.length < 3) errors.username = "Email must be at least 3 characters";
-
-  const password = body.get("password");
-  if (!password || typeof password !== "string" || password.length < 3) errors.password = "Password must be at least 3 characters";
-
-  if (Object.keys(errors).length > 0) return json({ errors, data: null });
-
-  console.log("Trying register...");
-  //const session = await getSession(request.headers.get("Cookie"));
-
-  const newUser = await createUserWithPassword({ email: (email as string) }, password as string);
+  const session = await getSession(request.headers.get("Cookie"));
+  const newUser = await createUserWithPassword({
+    email: submission.value.email,
+    firstName: submission.value.firstName,
+    lastName: submission.value.lastName,
+    birtday: submission.value.birtday,
+    profilePicture: null,
+  }, submission.value.password);
   if (!newUser) throw json({ error: 'User with email already exists' }, { status: 401, statusText: 'Unauthorized' });
 
-  //session.set("jwt", (await (await login(email as string, password as string)).json()).jwt)
-
-  return redirect("/auth/login");
-
-  /*return json({ data: null, errors: {} }, {
+  session.set("jwt", (await (await login(submission.value.email, submission.value.password)).json()).jwt);
+  return json({ data: null }, {
     headers: {
       "Set-Cookie": await commitSession(session),
     },
-  });*/
+  });
 }
 
 export async function loader({
@@ -75,6 +68,13 @@ export default function Login() {
   const dataError = Object.hasOwn(data?.data ?? {}, "error") ? (data?.data as ResponseError).error : null;
   const [passwordVisible, setPasswordVisible] = useState(false);
 
+  const [form, fields] = useForm({
+    shouldValidate: 'onBlur',
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema: userCreateSchema });
+    },
+  });
+
   return (
     <>
       <Card title="Register">
@@ -84,10 +84,17 @@ export default function Login() {
           or <Link to="/auth/login" className="text-blue-500 hover:text-indigo-400 transition-all">Login</Link>
         </div>
 
-        <Form method="post">
-          <FormField name="email" label="Email" errorHint={data?.errors?.username} className="mb-1 w-full"/>
+        <form method="post" id={form.id} onSubmit={form.onSubmit}>
+          <FormField name={fields.email.name} label="Email" errorHint={fields.email.errors?.join(", ")} className="mb-1 w-full"/>
 
-          <FormField name="password" label="Password" type={passwordVisible ? 'text' : 'password'} errorHint={data?.errors.password} className="w-full">
+          <FormField name={fields.firstName.name} label="First Name" errorHint={fields.firstName.errors?.join(", ")} className="mb-1 w-full"/>
+
+          <FormField name={fields.lastName.name} label="Last Name" errorHint={fields.lastName.errors?.join(", ")} className="mb-1 w-full"/>
+
+          <FormField name={fields.birtday.name} label="Birthday" errorHint={fields.birtday.errors?.join(", ")} className="mb-1 w-full"/>
+
+
+          <FormField name={fields.password.name} label="Password" errorHint={fields.password.errors?.join(", ")} type={passwordVisible ? 'text' : 'password'} className="w-full">
             <FormField.AppendInner type="button" onClick={() => setPasswordVisible(!passwordVisible)}>
               {passwordVisible ? <FaEye/> : <FaEyeSlash/>}
             </FormField.AppendInner>
@@ -96,7 +103,7 @@ export default function Login() {
           <Card.Actions>
             <button className="btn grow" type="submit">Submit & Login</button>
           </Card.Actions>
-        </Form>
+        </form>
       </Card>
     </>
   )
