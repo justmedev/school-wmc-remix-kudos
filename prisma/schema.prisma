@@ -14,19 +14,39 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        Int      @id @unique @default(autoincrement())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   email     String   @unique
   password  String
+
   // one-to-one mandatory
-  // profile   Profile  @relation(fields: [profileId], references: [id])
-  // profileId Int      @unique
+  profileId Int     @unique
+  profile   Profile @relation(fields: [profileId], references: [id])
 }
 
-// model Profile {
-//  id        Int    @id @default(autoincrement())
-//  firstName String
-//  lastName  String
-//  user      User?
-//}
+model Profile {
+  id    Int     @id @unique @default(autoincrement())
+  user  User?
+  kudos Kudos[]
+
+  firstName      String
+  lastName       String
+  birtday        DateTime
+  profilePicture String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Kudos {
+  id Int @id @unique @default(autoincrement())
+
+  profileId Int     @unique
+  profile   Profile @relation(fields: [profileId], references: [id])
+
+  message   String
+  emoji     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
