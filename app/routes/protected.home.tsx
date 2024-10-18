@@ -118,34 +118,36 @@ export default function ProtectedHome() {
 
       <dialog ref={dialog} className="rounded">
         <Form action="/actions/kudos/post" method="POST" navigate={false}>
-          <input type="number" hidden={true} name="receiver" value={dialogData ? dialogData!.profile.id : ""}/>
+          <input type="number" hidden={true} name="receiver" value={dialogData ? dialogData!.profile.id : ""} readOnly={true}/>
 
           <Card title={`Send Kudos to ${dialogData ? fullName(dialogData!.profile) : "?"}`} width="auto">
             <FormField name="message" placeholder={`Say something nice about ${dialogData ? fullName(dialogData!.profile) : "?"}`} fieldType="textarea" className="mb-2"/>
 
-            <div className="flex gap-4">
-              <Dropdown name="backgroundColor" label="Background Color">
-                <option value="red">Red</option>
-                <option value="green">Green</option>
-                <option value="blue">Blue</option>
-                <option value="gold">Gold</option>
-                <option value="lgbtqp">LGBTQ+</option>
-                <option value="goth">Goth</option>
-              </Dropdown>
+            {!dialog ? null :
+              <div className="flex gap-4">
+                <Dropdown name="backgroundColor" label="Background Color">
+                  <option value="red">Red</option>
+                  <option value="green">Green</option>
+                  <option value="blue">Blue</option>
+                  <option value="gold">Gold</option>
+                  <option value="lgbtqp">LGBTQ+</option>
+                  <option value="goth">Goth</option>
+                </Dropdown>
 
-              <Dropdown name="textColor" label="Text Color">
-                <option value="red">Red</option>
-                <option value="green">Green</option>
-                <option value="blue">Blue</option>
-                <option value="gold">Gold</option>
-                <option value="lgbtqp">LGBTQ+</option>
-                <option value="goth">Goth</option>
-              </Dropdown>
+                <Dropdown name="textColor" label="Text Color">
+                  <option value="red">Red</option>
+                  <option value="green">Green</option>
+                  <option value="blue">Blue</option>
+                  <option value="gold">Gold</option>
+                  <option value="lgbtqp">LGBTQ+</option>
+                  <option value="goth">Goth</option>
+                </Dropdown>
 
-              <Dropdown name="emoji" label="Emoji">
-                {["😔", "💸", "🔫", "😱", "😶‍🌫️"].map(emoji => <option value={emoji} key={emoji}>{emoji}</option>)}
-              </Dropdown>
-            </div>
+                <Dropdown name="emoji" label="Emoji">
+                  {["😔", "💸", "🔫", "😱", "😶‍🌫️"].map(emoji => <option value={emoji} key={emoji}>{emoji}</option>)}
+                </Dropdown>
+              </div>
+            }
 
             <Card.Actions>
               <div className="flex gap-2 w-full">
@@ -154,7 +156,7 @@ export default function ProtectedHome() {
                   Preview
                   <FaMagnifyingGlass/>
                 </button>
-                <button className="btn flex items-center justify-center gap-2 grow" type="submit">
+                <button className="btn flex items-center justify-center gap-2 grow" type="submit" onClick={() => setDialogData(null)}>
                   Send
                   <FaPaperPlane/>
                 </button>
