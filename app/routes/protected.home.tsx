@@ -7,9 +7,10 @@ import FormField from "~/components/formField";
 import { FaSave, FaSearch } from "react-icons/fa";
 import { useEffect, useRef, useState } from "react";
 import Card from "~/components/card";
-import { FaPaperPlane } from "react-icons/fa6";
+import { FaMagnifyingGlass, FaPaperPlane } from "react-icons/fa6";
 import { prisma } from "~/.server/prisma";
 import { Profile, User } from "@prisma/client";
+import Dropdown from "~/components/dropDown";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const session = await getSession(request.headers.get("Cookie"));
@@ -74,11 +75,11 @@ export default function ProtectedHome() {
                 </FormField.AppendInner>
               </FormField>
 
-              <select className="bg-gray-700 rounded text-gray-400 outline-none p-2 w-1/3 focus:text-white focus:bg-gradient-to-r focus:from-blue-900 focus:outline-indigo-500">
+              <Dropdown>
                 <option value="date">Sort: Date</option>
                 <option value="sender">Sort: Sender Name</option>
                 <option value="emoji">Sort: Emoji</option>
-              </select>
+              </Dropdown>
             </Form>
           </div>
           <div>
@@ -116,19 +117,51 @@ export default function ProtectedHome() {
       </div>
 
       <dialog ref={dialog} className="rounded">
-        <Card title={`Send Kudos to ${dialogData ? fullName(dialogData!.profile) : "?"}`}>
-          <Form>
-            FORM
-          </Form>
+        <Form action="/actions/kudos/post" method="POST" navigate={false}>
+          <input type="number" hidden={true} name="receiver" value={dialogData ? dialogData!.profile.id : ""}/>
 
-          <Card.Actions>
-            <button className="btn w-full" onClick={() => setDialogData(null)}>Cancel</button>
-            <button className="btn w-full flex items-center justify-center gap-2" onClick={() => setDialogData(null)}>
-              Send
-              <FaPaperPlane/>
-            </button>
-          </Card.Actions>
-        </Card>
+          <Card title={`Send Kudos to ${dialogData ? fullName(dialogData!.profile) : "?"}`} width="auto">
+            <FormField name="message" placeholder={`Say something nice about ${dialogData ? fullName(dialogData!.profile) : "?"}`} fieldType="textarea" className="mb-2"/>
+
+            <div className="flex gap-4">
+              <Dropdown label="Background Color">
+                <option value="red">Red</option>
+                <option value="green">Green</option>
+                <option value="blue">Blue</option>
+                <option value="gold">Gold</option>
+                <option value="lgbtqp">LGBTQ+</option>
+                <option value="goth">Goth</option>
+              </Dropdown>
+
+              <Dropdown label="Text Color">
+                <option value="red">Red</option>
+                <option value="green">Green</option>
+                <option value="blue">Blue</option>
+                <option value="gold">Gold</option>
+                <option value="lgbtqp">LGBTQ+</option>
+                <option value="goth">Goth</option>
+              </Dropdown>
+
+              <Dropdown label="Emoji" name="emoji">
+                {["😔", "💸", "🔫", "😱", "😶‍🌫️"].map(emoji => <option value={emoji} key={emoji}>{emoji}</option>)}
+              </Dropdown>
+            </div>
+
+            <Card.Actions>
+              <div className="flex gap-2 w-full">
+                <button className="btn shrink" onClick={() => setDialogData(null)}>Cancel</button>
+                <button className="btn flex items-center justify-center gap-2 shrink" onClick={() => setDialogData(null)}>
+                  Preview
+                  <FaMagnifyingGlass/>
+                </button>
+                <button className="btn flex items-center justify-center gap-2 grow" type="submit">
+                  Send
+                  <FaPaperPlane/>
+                </button>
+              </div>
+            </Card.Actions>
+          </Card>
+        </Form>
       </dialog>
 
       <dialog ref={selfDialog} className="rounded">
@@ -141,7 +174,7 @@ export default function ProtectedHome() {
             <Card.Actions>
               <button className="btn w-full" onClick={() => setSelfDialogOpen(false)}>Cancel</button>
               <button className="btn w-full flex items-center justify-center gap-2" onClick={() => setSelfDialogOpen(false)}>
-                Submit
+                Send
                 <FaSave/>
               </button>
             </Card.Actions>

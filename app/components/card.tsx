@@ -5,13 +5,13 @@ interface CardProps {
   children: ReactNode;
 
   subtitle?: string;
-  width?: number;
+  width?: number | string;
 }
 
 export default function Card({ title, subtitle, children, width }: CardProps) {
   return (
     <div className="flex w-full h-full items-center justify-center">
-      <div className="bg-gray-400 dark:bg-gray-800 p-4 rounded" style={{ width: `${width ?? '500'}px` }}>
+      <div className="bg-gray-400 dark:bg-gray-800 p-4 rounded" style={{ width: `${width ? `${typeof width === "string" ? `${width}px` : width}` : "500px"}` }}>
         <div className={`text-lg font-bold ${!subtitle ? 'mb-2' : ''}`}>
           {title}
         </div>

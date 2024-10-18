@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { config } from "dotenv";
 import * as process from "node:process";
 import { passwordIsValid } from "~/.server/db.auth";
-import { User } from "@prisma/client";
+import { Profile, User } from "@prisma/client";
 import { prisma } from "~/.server/prisma";
 
 config();
@@ -48,7 +48,8 @@ export function isJWTValid(token: string): TypedResponse<{ valid: boolean }> {
   return json({ valid: verified?.username !== undefined });
 }
 
-export async function getUserByJWT(token: string, includeProfile = true): Promise<User | null> {
+export type UserWithProfile = User & { profile: Profile };
+export async function getUserByJWT(token: string, includeProfile = true): Promise<User | UserWithProfile | null> {
   return prisma.user.findFirst({
     where: { email: (jwt.decode(token) as JwtPayload).email },
     include: { profile: includeProfile }
