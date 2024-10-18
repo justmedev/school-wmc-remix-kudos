@@ -4,11 +4,12 @@ import { Link, redirect, useActionData, useNavigate, useRouteError } from "@remi
 import { ActionFunctionArgs, json, LoaderFunctionArgs, TypedResponse } from "@remix-run/node";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
 import { useState } from "react";
-import { AuthResponse, login, ResponseError } from "~/.server/auth";
+import { AuthResponse, isJWTValid, login, ResponseError } from "~/.server/auth";
 import { commitSession, getSession } from "~/sessions";
-import { createUserWithPassword, userCreateSchema } from "~/.server/db.auth";
+import { createUserWithPassword } from "~/.server/db.auth";
 import { SubmissionResult, useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
+import { userCreateSchema } from "~/.shared/schema.user";
 
 interface ActionResponse {
   data: AuthResponse | ResponseError | SubmissionResult | null;
@@ -49,7 +50,7 @@ export async function loader({
     request.headers.get("Cookie")
   );
 
-  if (session.has("jwt")) {
+  if (session.has("jwt") && isJWTValid(session.get("jwt") ?? "")) {
     // Redirect to the home page if they are already signed in.
     return redirect("/protected/home");
   }
@@ -91,7 +92,7 @@ export default function Login() {
 
           <FormField name={fields.lastName.name} label="Last Name" errorHint={fields.lastName.errors?.join(", ")} className="mb-1 w-full"/>
 
-          <FormField name={fields.birtday.name} label="Birthday" errorHint={fields.birtday.errors?.join(", ")} className="mb-1 w-full"/>
+          <FormField name={fields.birtday.name} label="Birthday" type="date" errorHint={fields.birtday.errors?.join(", ")} className="mb-1 w-full"/>
 
 
           <FormField name={fields.password.name} label="Password" errorHint={fields.password.errors?.join(", ")} type={passwordVisible ? 'text' : 'password'} className="w-full">

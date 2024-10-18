@@ -39,13 +39,9 @@ export async function login(email: string, password: string): Promise<TypedRespo
   return json({ jwt: jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1d" }) });
 }
 
-export function isJWTValid(token: string): TypedResponse<{ valid: boolean }> {
-  if (typeof process.env.JWT_SECRET !== "string") throw json({ error: "dotenv err, JWT_SECRET not found" }, {
-    status: 500,
-    statusText: 'Internal Server Error'
-  });
-  const verified = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload | undefined;
-  return json({ valid: verified?.username !== undefined });
+export function isJWTValid(token: string): boolean {
+  if (typeof process.env.JWT_SECRET !== "string") throw Error("dotenv err, JWT_SECRET not found");
+  return (jwt.verify(token, process.env.JWT_SECRET) as JwtPayload | undefined)?.email !== undefined;
 }
 
 export type UserWithProfile = User & { profile: Profile };

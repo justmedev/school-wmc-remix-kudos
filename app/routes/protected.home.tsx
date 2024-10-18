@@ -124,7 +124,7 @@ export default function ProtectedHome() {
             <FormField name="message" placeholder={`Say something nice about ${dialogData ? fullName(dialogData!.profile) : "?"}`} fieldType="textarea" className="mb-2"/>
 
             <div className="flex gap-4">
-              <Dropdown label="Background Color">
+              <Dropdown name="backgroundColor" label="Background Color">
                 <option value="red">Red</option>
                 <option value="green">Green</option>
                 <option value="blue">Blue</option>
@@ -133,7 +133,7 @@ export default function ProtectedHome() {
                 <option value="goth">Goth</option>
               </Dropdown>
 
-              <Dropdown label="Text Color">
+              <Dropdown name="textColor" label="Text Color">
                 <option value="red">Red</option>
                 <option value="green">Green</option>
                 <option value="blue">Blue</option>
@@ -142,7 +142,7 @@ export default function ProtectedHome() {
                 <option value="goth">Goth</option>
               </Dropdown>
 
-              <Dropdown label="Emoji" name="emoji">
+              <Dropdown name="emoji" label="Emoji">
                 {["😔", "💸", "🔫", "😱", "😶‍🌫️"].map(emoji => <option value={emoji} key={emoji}>{emoji}</option>)}
               </Dropdown>
             </div>

@@ -3,14 +3,15 @@ import { getSession } from "~/sessions";
 import { getUserByJWT, isJWTValid, UserWithProfile } from "~/.server/auth";
 import { prisma } from "~/.server/prisma";
 import { parseWithZod } from "@conform-to/zod";
-import { userCreateSchema } from "~/.server/db.auth";
 import { z } from "zod";
-import { getAllProfiles, getProfileById } from "~/.server/db.profile";
+import { getProfileById } from "~/.server/db.profile";
 
 export const postKudosSchema = z.object({
-  emoji: z.string().min(1),
   message: z.string().min(1),
   receiver: z.number(),
+  emoji: z.string().min(1),
+  textColor: z.string().min(1),
+  backgroundColor: z.string().min(1),
 });
 
 export const action = async ({
@@ -36,6 +37,8 @@ export const action = async ({
   return json(await prisma.kudos.create({
     data: {
       emoji: submission.value.emoji,
+      textColor: submission.value.textColor,
+      backgroundColor: submission.value.backgroundColor,
       message: submission.value.message,
       authorProfile: {
         connect: (user as UserWithProfile).profile
