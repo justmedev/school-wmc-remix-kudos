@@ -9,8 +9,9 @@ import { useEffect, useRef, useState } from "react";
 import Card from "~/components/card";
 import { FaMagnifyingGlass, FaPaperPlane } from "react-icons/fa6";
 import { prisma } from "~/.server/prisma";
-import { Profile, User } from "@prisma/client";
+import { Kudos, Profile, User } from "@prisma/client";
 import Dropdown from "~/components/dropDown";
+import Message, { ColorOptions } from "~/components/message";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const session = await getSession(request.headers.get("Cookie"));
@@ -28,9 +29,34 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
   });
 
+  const kudos = await prisma.kudos.findMany({
+    where: {
+      receiverProfileId: user.profileId,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    include: {
+      authorProfile: true,
+      receiverProfile: true,
+    },
+  });
+
+  const recentKudos = await prisma.kudos.findMany({
+    include: {
+      authorProfile: true,
+      receiverProfile: true,
+    },
+    orderBy: {
+      createdAt: 'desc'
+    }
+  });
+
   return json({
     self: user,
     users: others,
+    kudos,
+    recentKudos,
   });
 };
 
@@ -38,10 +64,14 @@ interface DialogData {
   profile: Profile;
 }
 
+type KudosWithProfiles = Kudos & { authorProfile: Profile, receiverProfile: Profile };
+
 export default function ProtectedHome() {
-  const { users, self } = useLoaderData<typeof loader>() as unknown as {
+  const { users, self, kudos, recentKudos } = useLoaderData<typeof loader>() as unknown as {
     users: Profile[],
     self: User & { profile: Profile }
+    kudos: KudosWithProfiles[],
+    recentKudos: KudosWithProfiles[],
   }
   const dialog = useRef<HTMLDialogElement | null>(null);
   const [dialogData, setDialogData] = useState<DialogData | null>(null)
@@ -62,7 +92,7 @@ export default function ProtectedHome() {
   return (
     <>
       <div className="grid grid-cols-3 grid-rows-2 h-full w-full">
-        <div className="bg-gray-800 text-blue-700 font-bold text-xl col-span-1 flex justify-center items-center">
+        <div className="bg-gray-800 text-blue-600 font-bold text-xl col-span-1 flex justify-center items-center">
           My Team
         </div>
 
@@ -102,11 +132,19 @@ export default function ProtectedHome() {
         </div>
 
         <div className="bg-gray-700 row-span-2">
-          MAIN
+          {kudos.map(kudo =>
+            <Message key={kudo.id} author={fullName(kudo.authorProfile)} message={kudo.message} emoji={kudo.emoji} backgroundColor={kudo.backgroundColor as ColorOptions} textColor={kudo.textColor as ColorOptions}/>)}
+          {JSON.stringify(kudos, null, 2)}
         </div>
 
-        <div className="bg-gray-800 row-span-2">
-          RECENT
+        <div className="bg-gray-800 row-span-2 flex gap-2 flex-col items-center pt-2">
+          <div className="text-lg font-medium text-blue-600">Recent Kudos</div>
+          {recentKudos.map(kudo => (
+            <div key={kudo.id} className="bg-blue-400 rounded-full py-7 px-8 w-min font-mono relative">
+              {getShort(fullName(kudo.authorProfile))}
+              <div className="text-3xl absolute -bottom-2 -right-2 rounded-full">{kudo.emoji}</div>
+            </div>
+          ))}
         </div>
 
         <div className="bg-gray-800 flex items-center justify-center">
@@ -117,7 +155,7 @@ export default function ProtectedHome() {
       </div>
 
       <dialog ref={dialog} className="rounded">
-        <Form action="/actions/kudos/post" method="POST" navigate={false}>
+        <Form action="/actions/kudos/post" method="POST" navigate={false} onSubmit={() => setDialogData(null)}>
           <input type="number" hidden={true} name="receiver" value={dialogData ? dialogData!.profile.id : ""} readOnly={true}/>
 
           <Card title={`Send Kudos to ${dialogData ? fullName(dialogData!.profile) : "?"}`} width="auto">
@@ -129,18 +167,18 @@ export default function ProtectedHome() {
                   <option value="red">Red</option>
                   <option value="green">Green</option>
                   <option value="blue">Blue</option>
-                  <option value="gold">Gold</option>
+                  <option value="amber">Gold</option>
                   <option value="lgbtqp">LGBTQ+</option>
-                  <option value="goth">Goth</option>
+                  <option value="black">Goth</option>
                 </Dropdown>
 
                 <Dropdown name="textColor" label="Text Color">
                   <option value="red">Red</option>
                   <option value="green">Green</option>
                   <option value="blue">Blue</option>
-                  <option value="gold">Gold</option>
+                  <option value="amber">Gold</option>
                   <option value="lgbtqp">LGBTQ+</option>
-                  <option value="goth">Goth</option>
+                  <option value="black">Goth</option>
                 </Dropdown>
 
                 <Dropdown name="emoji" label="Emoji">
@@ -156,7 +194,7 @@ export default function ProtectedHome() {
                   Preview
                   <FaMagnifyingGlass/>
                 </button>
-                <button className="btn flex items-center justify-center gap-2 grow" type="submit" onClick={() => setDialogData(null)}>
+                <button className="btn flex items-center justify-center gap-2 grow" type="submit">
                   Send
                   <FaPaperPlane/>
                 </button>
@@ -189,15 +227,15 @@ export default function ProtectedHome() {
 
 const intlDateFormatter = new Intl.DateTimeFormat("de", { dateStyle: "short" })
 
-function formatDate(d: Date): string {
+export function formatDate(d: Date): string {
   return intlDateFormatter.format(d);
 }
 
-function fullName(profile: Profile) {
+export function fullName(profile: Profile) {
   return `${profile.firstName ?? ""} ${profile.lastName ?? ""}`
 }
 
-function getShort(s: string): string {
+export function getShort(s: string): string {
   const splitted = s.split(" ");
   return splitted.length > 1 ? splitted[0][0] + splitted[1][0] : splitted[0][0] + (splitted[0][1] ?? "?");
 }

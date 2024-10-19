@@ -16,7 +16,19 @@ export default {
           '"Noto Color Emoji"',
         ],
       },
+
     },
   },
   plugins: [],
+  safelist: [
+    {
+      pattern: /bg-+/
+    },
+    {
+      pattern: /from-+/
+    },
+    {
+      pattern: /to-+/
+    }
+  ]
 } satisfies Config;

@@ -12,6 +12,40 @@ body {
         }
     };
 
+    .bg-rainbow {
+        background: linear-gradient(90deg,
+        rgb(210, 107, 107) 0%,
+        rgb(218, 167, 79) 10%,
+        rgb(219, 231, 97) 20%,
+        rgb(109, 189, 107) 30%,
+        rgba(63, 218, 216, 1) 40%,
+        rgb(69, 211, 234) 50%,
+        rgb(61, 139, 227) 60%,
+        rgb(165, 125, 245) 70%,
+        rgb(201, 101, 236) 80%,
+        rgb(239, 110, 224) 90%,
+        rgb(238, 84, 84) 100%);
+    }
+
+    .text-rainbow {
+        background: linear-gradient(90deg,
+        rgb(210, 107, 107) 0%,
+        rgb(218, 167, 79) 10%,
+        rgb(219, 231, 97) 20%,
+        rgb(109, 189, 107) 30%,
+        rgba(63, 218, 216, 1) 40%,
+        rgb(69, 211, 234) 50%,
+        rgb(61, 139, 227) 60%,
+        rgb(165, 125, 245) 70%,
+        rgb(201, 101, 236) 80%,
+        rgb(239, 110, 224) 90%,
+        rgb(238, 84, 84) 100%);
+
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
     @media (prefers-color-scheme: dark) {
         color-scheme: dark;
     }
