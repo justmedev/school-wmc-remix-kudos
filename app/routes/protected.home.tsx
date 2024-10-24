@@ -9,56 +9,90 @@ import { useEffect, useRef, useState } from "react";
 import Card from "~/components/card";
 import { FaMagnifyingGlass, FaPaperPlane } from "react-icons/fa6";
 import { prisma } from "~/.server/prisma";
-import { Kudos, Profile, User } from "@prisma/client";
+import { Kudos, Prisma, Profile, User } from "@prisma/client";
 import Dropdown from "~/components/dropDown";
 import Message, { ColorOptions } from "~/components/message";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const session = await getSession(request.headers.get("Cookie"));
-  if (!session.has("jwt") || !isJWTValid(session.get("jwt") ?? "")) {
-    throw redirect("/auth/login")
-  }
+    const session = await getSession(request.headers.get("Cookie"));
+    if (!session.has("jwt") || !isJWTValid(session.get("jwt") ?? "")) {
+      throw redirect("/auth/login")
+    }
 
-  const user = await getUserByJWT(session.get("jwt")!);
-  if (!user) throw redirect("/auth/login")
-  const others = await prisma.profile.findMany({
-    where: {
-      id: {
-        not: user.profileId
+    const user = await getUserByJWT(session.get("jwt")!);
+    if (!user) throw redirect("/auth/login")
+    const others = await prisma.profile.findMany({
+      where: {
+        id: {
+          not: user.profileId
+        }
+      }
+    });
+
+    const params = new URL(request.url).searchParams;
+    let orderBy: Prisma.KudosOrderByWithRelationInput = {};
+    console.log(params)
+    if (params.has("sort")) {
+      const sort = params.get("sort");
+      if (sort === "emoji") {
+        orderBy = {
+          emoji: 'desc',
+        }
+      } else if (sort === "author") {
+        orderBy = {
+          authorProfile: {
+            firstName: "desc",
+          }
+        }
+      } else {
+        orderBy = {
+          createdAt: 'desc',
+        }
       }
     }
-  });
 
-  const kudos = await prisma.kudos.findMany({
-    where: {
-      receiverProfileId: user.profileId,
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
-    include: {
-      authorProfile: true,
-      receiverProfile: true,
-    },
-  });
-
-  const recentKudos = await prisma.kudos.findMany({
-    include: {
-      authorProfile: true,
-      receiverProfile: true,
-    },
-    orderBy: {
-      createdAt: 'desc'
+    let search: Prisma.KudosWhereInput = {};
+    if (params.has("search")) {
+      search = {
+        message: {
+          contains: params.get("search") ?? "",
+        }
+      }
     }
-  });
+  console.log(search, params.has("search"), params.get("search"));
 
-  return json({
-    self: user,
-    users: others,
-    kudos,
-    recentKudos,
-  });
-};
+    const kudos = await prisma.kudos.findMany({
+      where: {
+        AND: [
+          { receiverProfileId: user.profileId },
+          search
+        ]
+      },
+      orderBy,
+      include: {
+        authorProfile: true,
+        receiverProfile: true,
+      },
+    });
+
+    const recentKudos = await prisma.kudos.findMany({
+      include: {
+        authorProfile: true,
+        receiverProfile: true,
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    return json({
+      self: user,
+      users: others,
+      kudos,
+      recentKudos,
+    });
+  }
+;
 
 interface DialogData {
   profile: Profile;
@@ -98,18 +132,20 @@ export default function ProtectedHome() {
 
         <div className="bg-gray-800 col-span-2 flex justify-between p-4 items-center">
           <div className="w-1/2">
-            <Form className="flex flex-row gap-2.5 w-full">
-              <FormField placeholder="Search a message or name" className="grow">
-                <FormField.AppendInner onClick={() => null}>
+            <Form className="flex flex-row items-center gap-2.5 w-full">
+              <FormField name="search" placeholder="Search a message or name" className="grow">
+                <FormField.AppendInner onClick={() => (document.getElementById("kudosSearchForm") as HTMLFormElement).submit()}>
                   <FaSearch/>
                 </FormField.AppendInner>
               </FormField>
 
-              <Dropdown>
+              <Dropdown name="sort" className="object-fill">
                 <option value="date">Sort: Date</option>
-                <option value="sender">Sort: Sender Name</option>
+                <option value="author">Sort: Sender Name</option>
                 <option value="emoji">Sort: Emoji</option>
               </Dropdown>
+
+              <button className="btn" type="submit">Apply Filters</button>
             </Form>
           </div>
           <div>
@@ -131,17 +167,16 @@ export default function ProtectedHome() {
           )}
         </div>
 
-        <div className="bg-gray-700 row-span-2">
+        <div className="bg-gray-700 row-span-2 overflow-scroll">
           {kudos.map(kudo =>
             <Message key={kudo.id} author={fullName(kudo.authorProfile)} message={kudo.message} emoji={kudo.emoji} backgroundColor={kudo.backgroundColor as ColorOptions} textColor={kudo.textColor as ColorOptions}/>)}
-          {JSON.stringify(kudos, null, 2)}
         </div>
 
-        <div className="bg-gray-800 row-span-2 flex gap-2 flex-col items-center pt-2">
+        <div className="bg-gray-800 row-span-2 flex gap-2 flex-col items-center pt-2 overflow-scroll">
           <div className="text-lg font-medium text-blue-600">Recent Kudos</div>
           {recentKudos.map(kudo => (
             <div key={kudo.id} className="bg-blue-400 rounded-full py-7 px-8 w-min font-mono relative">
-              {getShort(fullName(kudo.authorProfile))}
+              {getShort(fullName(kudo.receiverProfile))}
               <div className="text-3xl absolute -bottom-2 -right-2 rounded-full">{kudo.emoji}</div>
             </div>
           ))}
