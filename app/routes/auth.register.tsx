@@ -52,7 +52,7 @@ export async function loader({
 
   if (session.has("jwt") && isJWTValid(session.get("jwt") ?? "")) {
     // Redirect to the home page if they are already signed in.
-    return redirect("/protected/home");
+    return redirect("/protected/chat");
   }
 
   const data = { error: session.get("error") };
