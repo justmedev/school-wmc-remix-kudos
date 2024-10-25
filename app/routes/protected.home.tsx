@@ -14,85 +14,84 @@ import Dropdown from "~/components/dropDown";
 import Message, { ColorOptions } from "~/components/message";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-    const session = await getSession(request.headers.get("Cookie"));
-    if (!session.has("jwt") || !isJWTValid(session.get("jwt") ?? "")) {
-      throw redirect("/auth/login")
-    }
+  const session = await getSession(request.headers.get("Cookie"));
+  if (!session.has("jwt") || !isJWTValid(session.get("jwt") ?? "")) {
+    throw redirect("/auth/login")
+  }
 
-    const user = await getUserByJWT(session.get("jwt")!);
-    if (!user) throw redirect("/auth/login")
-    const others = await prisma.profile.findMany({
-      where: {
-        id: {
-          not: user.profileId
-        }
-      }
-    });
-
-    const params = new URL(request.url).searchParams;
-    let orderBy: Prisma.KudosOrderByWithRelationInput = {};
-    console.log(params)
-    if (params.has("sort")) {
-      const sort = params.get("sort");
-      if (sort === "emoji") {
-        orderBy = {
-          emoji: 'desc',
-        }
-      } else if (sort === "author") {
-        orderBy = {
-          authorProfile: {
-            firstName: "desc",
-          }
-        }
-      } else {
-        orderBy = {
-          createdAt: 'desc',
-        }
+  const user = await getUserByJWT(session.get("jwt")!);
+  if (!user) throw redirect("/auth/login")
+  const others = await prisma.profile.findMany({
+    where: {
+      id: {
+        not: user.profileId
       }
     }
+  });
 
-    let search: Prisma.KudosWhereInput = {};
-    if (params.has("search")) {
-      search = {
-        message: {
-          contains: params.get("search") ?? "",
+  const params = new URL(request.url).searchParams;
+  let orderBy: Prisma.KudosOrderByWithRelationInput = {};
+  console.log(params)
+  if (params.has("sort")) {
+    const sort = params.get("sort");
+    if (sort === "emoji") {
+      orderBy = {
+        emoji: 'desc',
+      }
+    } else if (sort === "author") {
+      orderBy = {
+        authorProfile: {
+          firstName: "desc",
         }
       }
+    } else {
+      orderBy = {
+        createdAt: 'desc',
+      }
     }
+  }
+
+  let search: Prisma.KudosWhereInput = {};
+  if (params.has("search")) {
+    search = {
+      message: {
+        contains: params.get("search") ?? "",
+      }
+    }
+  }
   console.log(search, params.has("search"), params.get("search"));
 
-    const kudos = await prisma.kudos.findMany({
-      where: {
-        AND: [
-          { receiverProfileId: user.profileId },
-          search
-        ]
-      },
-      orderBy,
-      include: {
-        authorProfile: true,
-        receiverProfile: true,
-      },
-    });
+  const kudos = await prisma.kudos.findMany({
+    where: {
+      AND: [
+        { receiverProfileId: user.profileId },
+        search
+      ]
+    },
+    orderBy,
+    include: {
+      authorProfile: true,
+      receiverProfile: true,
+    },
+  });
 
-    const recentKudos = await prisma.kudos.findMany({
-      include: {
-        authorProfile: true,
-        receiverProfile: true,
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
+  const recentKudos = await prisma.kudos.findMany({
+    include: {
+      authorProfile: true,
+      receiverProfile: true,
+    },
+    orderBy: {
+      createdAt: 'desc'
+    }
+  });
 
-    return json({
-      self: user,
-      users: others,
-      kudos,
-      recentKudos,
-    });
-  }
-;
+  return json({
+    self: user,
+    users: others,
+    kudos,
+    recentKudos,
+  });
+};
 
 interface DialogData {
   profile: Profile;

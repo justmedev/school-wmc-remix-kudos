@@ -1,6 +1,5 @@
 import { ActionFunctionArgs, json } from "@remix-run/node";
-import { destroySession, getSession } from "~/sessions";
-import { redirect } from "@remix-run/react";
+import { getSession } from "~/sessions";
 import { getUserByJWT, isJWTValid } from "~/.server/auth";
 import { prisma } from "~/.server/prisma";
 import { parseWithZod } from "@conform-to/zod";

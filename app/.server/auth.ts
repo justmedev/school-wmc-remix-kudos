@@ -45,6 +45,7 @@ export function isJWTValid(token: string): boolean {
 }
 
 export type UserWithProfile = User & { profile: Profile };
+
 export async function getUserByJWT(token: string, includeProfile = true): Promise<User | UserWithProfile | null> {
   return prisma.user.findFirst({
     where: { email: (jwt.decode(token) as JwtPayload).email },

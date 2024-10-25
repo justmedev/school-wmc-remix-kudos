@@ -28,6 +28,8 @@ body {
     }
 
     .text-rainbow {
+        color: transparent;
+
         background: linear-gradient(90deg,
         rgb(210, 107, 107) 0%,
         rgb(218, 167, 79) 10%,
@@ -40,10 +42,8 @@ body {
         rgb(201, 101, 236) 80%,
         rgb(239, 110, 224) 90%,
         rgb(238, 84, 84) 100%);
-
         -webkit-background-clip: text;
         background-clip: text;
-        color: transparent;
     }
 
     @media (prefers-color-scheme: dark) {

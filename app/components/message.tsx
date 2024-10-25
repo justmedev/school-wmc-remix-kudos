@@ -12,7 +12,7 @@ interface MessageProps {
 
 export default function Message({ author, message, emoji, backgroundColor, textColor }: MessageProps) {
 
-  const colorMe = (type: string, color: ColorOptions)=> {
+  const colorMe = (type: string, color: ColorOptions) => {
     if (color === 'lgbtqp') return `${type}-rainbow`;
     if (color === 'black') return `${type}-black`;
     return `${type}-${color}-400`;

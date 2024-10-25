@@ -17,11 +17,15 @@ export const postKudosSchema = z.object({
 export const action = async ({
                                request,
                              }: ActionFunctionArgs) => {
-  if (request.method !== "POST") throw json({error: "Method Not Allowed"}, { status: 405, statusText: "Method Not Allowed" });
+  if (request.method !== "POST") throw json({ error: "Method Not Allowed" }, {
+    status: 405,
+    statusText: "Method Not Allowed"
+  });
   const session = await getSession(
     request.headers.get("Cookie")
   );
-  if (!session.has("jwt") || !isJWTValid(session.get("jwt") ?? "")) throw json({ error: "Unauthorized Access" }, { status: 401, statusText: "Unauthorized" });
+  if (!session.has("jwt") || !isJWTValid(session.get("jwt") ?? ""))
+    throw json({ error: "Unauthorized Access" }, { status: 401, statusText: "Unauthorized" });
 
   const formData = await request.formData();
   const submission = parseWithZod(formData, { schema: postKudosSchema });
