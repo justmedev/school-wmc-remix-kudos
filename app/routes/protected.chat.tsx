@@ -99,7 +99,7 @@ interface DialogData {
 
 type KudosWithProfiles = Kudos & { authorProfile: Profile, receiverProfile: Profile };
 
-export default function ProtectedHome() {
+export default function ProtectedChat() {
   const { users, self, kudos, recentKudos } = useLoaderData<typeof loader>() as unknown as {
     users: Profile[],
     self: User & { profile: Profile }

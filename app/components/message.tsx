@@ -1,4 +1,4 @@
-import { getShort } from "~/routes/protected.home";
+import { getShort } from "~/routes/protected.chat";
 
 export type ColorOptions = 'red' | 'green' | 'blue' | 'amber' | 'black' | 'lgbtqp';
 
