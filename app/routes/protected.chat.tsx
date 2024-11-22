@@ -14,7 +14,8 @@ import Dropdown from "~/components/dropDown";
 import Message, { ColorOptions } from "~/components/message";
 import Realistic from "react-canvas-confetti/src/presets/realistic";
 import { TConductorInstance, TDecorateOptionsFn, TOnInitPresetFn } from "react-canvas-confetti/src/types";
-import confetti, { Origin } from "canvas-confetti";
+import confetti from "canvas-confetti";
+import Pride from "react-canvas-confetti/src/presets/pride";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const session = await getSession(request.headers.get("Cookie"));
@@ -120,7 +121,8 @@ export default function ProtectedChat() {
     return {
       ...defaults,
       scalar: 3,
-      shapes: [confetti.shapeFromText({ text: confettiText.current, scalar: 1 })],
+      particleCount: 30,
+      shapes: [confetti.shapeFromText({ text: confettiText.current, scalar: 3 })],
     }
   }
   const confettiController = useRef<TConductorInstance>();
@@ -183,12 +185,11 @@ export default function ProtectedChat() {
           )}
         </div>
 
-        <Realistic onInit={onInitHandler} decorateOptions={confettiOptions}/>
         <div className="bg-gray-700 row-span-2 overflow-scroll w-full h-full">
           {kudos.map(kudo => <div key={kudo.id}>
             <Message onClick={() => {
               confettiText.current = kudo.emoji
-              confettiController.current?.shoot()
+              confettiController.current?.run({ duration: 1_000, delay: 50, speed: 25 })
             }} author={fullName(kudo.authorProfile)} message={kudo.message} emoji={kudo.emoji} backgroundColor={kudo.backgroundColor as ColorOptions} textColor={kudo.textColor as ColorOptions}/>
           </div>)}
           {kudos.length > 0 ?
@@ -289,6 +290,8 @@ export default function ProtectedChat() {
           </Form>
         </Card>
       </dialog>
+
+      <Pride onInit={onInitHandler} decorateOptions={confettiOptions}/>
     </>
   );
 }
