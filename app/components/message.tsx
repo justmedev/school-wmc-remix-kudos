@@ -8,9 +8,10 @@ interface MessageProps {
   emoji: string;
   backgroundColor: ColorOptions;
   textColor: ColorOptions;
+  onClick: () => void;
 }
 
-export default function Message({ author, message, emoji, backgroundColor, textColor }: MessageProps) {
+export default function Message({ author, message, emoji, backgroundColor, textColor, onClick }: MessageProps) {
 
   const colorMe = (type: string, color: ColorOptions) => {
     if (color === 'lgbtqp') return `${type}-rainbow`;
@@ -18,7 +19,7 @@ export default function Message({ author, message, emoji, backgroundColor, textC
     return `${type}-${color}-400`;
   }
 
-  return (<div className={`${colorMe('bg', backgroundColor)} p-3 m-2 rounded flex justify-between items-center`}>
+  return (<div className={`${colorMe('bg', backgroundColor)} p-3 m-2 rounded flex justify-between items-center`} onClick={onClick}>
     <div className="flex gap-3 items-center">
       <div className="bg-blue-400 rounded-full py-4 px-5 font-mono">
         {getShort(author)}

@@ -12,6 +12,9 @@ import { prisma } from "~/.server/prisma";
 import { Kudos, Prisma, Profile, User } from "@prisma/client";
 import Dropdown from "~/components/dropDown";
 import Message, { ColorOptions } from "~/components/message";
+import Realistic from "react-canvas-confetti/src/presets/realistic";
+import { TConductorInstance, TDecorateOptionsFn, TOnInitPresetFn } from "react-canvas-confetti/src/types";
+import confetti, { Origin } from "canvas-confetti";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const session = await getSession(request.headers.get("Cookie"));
@@ -112,6 +115,20 @@ export default function ProtectedChat() {
   const selfDialog = useRef<HTMLDialogElement | null>(null);
   const [selfDialogOpen, setSelfDialogOpen] = useState(false);
 
+  const confettiText = useRef<string>('🎂');
+  const confettiOptions: TDecorateOptionsFn = (defaults) => {
+    return {
+      ...defaults,
+      scalar: 3,
+      shapes: [confetti.shapeFromText({ text: confettiText.current, scalar: 1 })],
+    }
+  }
+  const confettiController = useRef<TConductorInstance>();
+
+  const onInitHandler: TOnInitPresetFn = ({ conductor }) => {
+    confettiController.current = conductor;
+  };
+
   useEffect(() => {
     if (dialogData) dialog.current?.showModal()
     else dialog.current?.close()
@@ -166,9 +183,14 @@ export default function ProtectedChat() {
           )}
         </div>
 
+        <Realistic onInit={onInitHandler} decorateOptions={confettiOptions}/>
         <div className="bg-gray-700 row-span-2 overflow-scroll w-full h-full">
-          {kudos.map(kudo =>
-            <Message key={kudo.id} author={fullName(kudo.authorProfile)} message={kudo.message} emoji={kudo.emoji} backgroundColor={kudo.backgroundColor as ColorOptions} textColor={kudo.textColor as ColorOptions}/>)}
+          {kudos.map(kudo => <div key={kudo.id}>
+            <Message onClick={() => {
+              confettiText.current = kudo.emoji
+              confettiController.current?.shoot()
+            }} author={fullName(kudo.authorProfile)} message={kudo.message} emoji={kudo.emoji} backgroundColor={kudo.backgroundColor as ColorOptions} textColor={kudo.textColor as ColorOptions}/>
+          </div>)}
           {kudos.length > 0 ?
             null :
             <div className="flex flex-col items-center justify-center h-1/3 text-gray-400">
