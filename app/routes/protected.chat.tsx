@@ -7,7 +7,7 @@ import FormField from "~/components/formField";
 import { FaSave, FaSearch } from "react-icons/fa";
 import { useEffect, useRef, useState } from "react";
 import Card from "~/components/card";
-import { FaMagnifyingGlass, FaPaperPlane } from "react-icons/fa6";
+import { FaCircleXmark, FaMagnifyingGlass, FaPaperPlane } from "react-icons/fa6";
 import { prisma } from "~/.server/prisma";
 import { Kudos, Prisma, Profile, User } from "@prisma/client";
 import Dropdown from "~/components/dropDown";
@@ -166,9 +166,16 @@ export default function ProtectedChat() {
           )}
         </div>
 
-        <div className="bg-gray-700 row-span-2 overflow-scroll">
+        <div className="bg-gray-700 row-span-2 overflow-scroll w-full h-full">
           {kudos.map(kudo =>
             <Message key={kudo.id} author={fullName(kudo.authorProfile)} message={kudo.message} emoji={kudo.emoji} backgroundColor={kudo.backgroundColor as ColorOptions} textColor={kudo.textColor as ColorOptions}/>)}
+          {kudos.length > 0 ?
+            null :
+            <div className="flex flex-col items-center justify-center h-1/3 text-gray-400">
+              <FaCircleXmark/>
+              <div>No messages to display</div>
+            </div>
+          }
         </div>
 
         <div className="bg-gray-800 row-span-2 flex gap-2 flex-col items-center pt-2 overflow-scroll">
@@ -241,8 +248,13 @@ export default function ProtectedChat() {
       <dialog ref={selfDialog} className="rounded">
         <Card title="My Profile">
           <Form action="/actions/profile" method="PUT" navigate={false}>
-            <FormField name="firstName" placeholder="First Name" label="First Name" defaultValue={self.profile.firstName}/>
-            <FormField name="lastName" placeholder="Last Name" label="Last Name" defaultValue={self.profile.lastName}/>
+            <div className="flex justify-between">
+              ABC
+              <div>
+                <FormField name="firstName" placeholder="First Name" label="First Name" defaultValue={self.profile.firstName}/>
+                <FormField name="lastName" placeholder="Last Name" label="Last Name" defaultValue={self.profile.lastName}/>
+              </div>
+            </div>
             <FormField name="birtday" placeholder="Birthday" label="Birthday" defaultValue={formatDate(new Date(self.profile.birtday))}/>
 
             <Card.Actions>
