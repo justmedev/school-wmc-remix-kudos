@@ -19,17 +19,22 @@ export default function Message({ author, message, emoji, backgroundColor, textC
     return `${type}-${color}-400`;
   }
 
-  return (<div className={`${colorMe('bg', backgroundColor)} p-3 m-2 rounded flex justify-between items-center`} onClick={onClick}>
-    <div className="flex gap-3 items-center">
-      <div className="bg-blue-400 rounded-full py-4 px-5 font-mono">
-        {getShort(author)}
-      </div>
-      <div className={colorMe('text', textColor)}>
-        <div className="text-lg font-medium">{author}</div>
-        <div className="-mt-1">{message}</div>
-      </div>
-    </div>
+  return (
+    <>
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events */}
+      <div className={`${colorMe('bg', backgroundColor)} p-3 m-2 rounded flex justify-between items-center`} onClick={onClick}>
+        <div className="flex gap-3 items-center">
+          <div className="bg-blue-400 rounded-full py-4 px-5 font-mono">
+            {getShort(author)}
+          </div>
+          <div className={colorMe('text', textColor)}>
+            <div className="text-lg font-medium">{author}</div>
+            <div className="-mt-1">{message}</div>
+          </div>
+        </div>
 
-    <div className="text-5xl">{emoji}</div>
-  </div>)
+        <div className="text-5xl">{emoji}</div>
+      </div>
+    </>
+  )
 }
