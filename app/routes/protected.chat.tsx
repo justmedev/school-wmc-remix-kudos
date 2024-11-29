@@ -3,21 +3,18 @@ import { getUserByJWT, isJWTValid, UserWithProfile } from "~/.server/auth";
 import { Form, redirect, useLoaderData } from "@remix-run/react";
 import { getSession } from "~/sessions";
 import "~/components/chatStyle.css";
-import FormField from "~/components/formField";
-import { FaSearch } from "react-icons/fa";
-import { useEffect, useRef, useState } from "react";
-import Card from "~/components/card";
-import { FaCircleXmark, FaMagnifyingGlass, FaPaperPlane } from "react-icons/fa6";
+import { useRef, useState } from "react";
+import { FaCircleXmark } from "react-icons/fa6";
 import { prisma } from "~/.server/prisma";
 import { Kudos, Prisma, Profile } from "@prisma/client";
-import Dropdown from "~/components/dropDown";
 import Message, { ColorOptions } from "~/components/message";
 import { TConductorInstance, TDecorateOptionsFn, TOnInitPresetFn } from "react-canvas-confetti/src/types";
 import confetti from "canvas-confetti";
 import Pride from "react-canvas-confetti/src/presets/pride";
 import DialogSelfManagement from "~/components/dialogSelfManagement";
-import DialogMessageCreation, { DialogMessageCreationData, DialogMessageCreationProps } from "~/components/dialogMessageCreation";
+import DialogMessageCreation, { DialogMessageCreationData } from "~/components/dialogMessageCreation";
 import ChatTopBar from "~/components/chatTopBar";
+import ProfilePicture from "~/components/profilePicture";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const session = await getSession(request.headers.get("Cookie"));
@@ -37,7 +34,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const params = new URL(request.url).searchParams;
   let orderBy: Prisma.KudosOrderByWithRelationInput = {};
-  console.log(params)
   if (params.has("sort")) {
     const sort = params.get("sort");
     if (sort === "emoji") {
@@ -65,7 +61,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       }
     }
   }
-  console.log(search, params.has("search"), params.get("search"));
 
   const kudos = await prisma.kudos.findMany({
     where: {
@@ -141,9 +136,7 @@ export default function ProtectedChat() {
             <button className={`w-full flex justify-center ${i % 2 === 0 ? "bg-gray-500" : ""} py-2 select-none cursor-pointer`} title={fullName(profile)} key={i} onClick={() => {
               setDialogMessageCreationData({ profile: profile })
             }}>
-              <div className="bg-blue-400 rounded-full py-7 px-8 font-mono">
-                {getShort(fullName(profile))}
-              </div>
+              <ProfilePicture profile={profile}/>
             </button>
           )}
         </div>
@@ -153,7 +146,7 @@ export default function ProtectedChat() {
             <Message onClick={() => {
               confettiText.current = kudo.emoji
               confettiController.current?.run({ duration: 1_000, delay: 50, speed: 25 })
-            }} author={fullName(kudo.authorProfile)} message={kudo.message} emoji={kudo.emoji} backgroundColor={kudo.backgroundColor as ColorOptions} textColor={kudo.textColor as ColorOptions}/>
+            }} author={kudo.authorProfile} message={kudo.message} emoji={kudo.emoji} backgroundColor={kudo.backgroundColor as ColorOptions} textColor={kudo.textColor as ColorOptions}/>
           </div>)}
           {kudos.length > 0 ?
             null :
@@ -166,12 +159,11 @@ export default function ProtectedChat() {
 
         <div className="bg-gray-800 row-span-2 flex gap-2 flex-col items-center pt-2 overflow-scroll">
           <div className="text-lg font-medium text-blue-600">Recent Kudos</div>
-          {recentKudos.map(kudo => (
-            <div key={kudo.id} className="bg-blue-400 rounded-full py-7 px-8 w-min font-mono relative">
-              {getShort(fullName(kudo.receiverProfile))}
-              <div className="text-3xl absolute -bottom-2 -right-2 rounded-full">{kudo.emoji}</div>
-            </div>
-          ))}
+          {
+            recentKudos.map(kudo => (
+              <ProfilePicture profile={kudo.receiverProfile} key={kudo.id} emoji={kudo.emoji} size="lg"/>
+            ))
+          }
         </div>
 
         <div className="bg-gray-800 flex items-center justify-center">
@@ -191,10 +183,5 @@ export default function ProtectedChat() {
 
 export function fullName(profile: Profile) {
   return `${profile.firstName ?? ""} ${profile.lastName ?? ""}`
-}
-
-export function getShort(s: string): string {
-  const splitted = s.split(" ");
-  return splitted.length > 1 ? splitted[0][0] + splitted[1][0] : splitted[0][0] + (splitted[0][1] ?? "?");
 }
 

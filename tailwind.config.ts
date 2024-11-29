@@ -22,6 +22,12 @@ export default {
   plugins: [],
   safelist: [
     {
+      pattern: /py-+/
+    },
+    {
+      pattern: /px-+/
+    },
+    {
       pattern: /bg-+/
     },
     {

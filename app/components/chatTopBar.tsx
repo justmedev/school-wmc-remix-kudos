@@ -2,7 +2,7 @@ import { Form } from "@remix-run/react";
 import FormField from "~/components/formField";
 import { FaSearch } from "react-icons/fa";
 import Dropdown from "~/components/dropDown";
-import { fullName, getShort } from "~/routes/protected.chat";
+import ProfilePicture from "~/components/profilePicture";
 import { UserWithProfile } from "~/.server/auth";
 
 interface ChatTopBarProps {
@@ -31,9 +31,7 @@ export default function ChatTopBar({self, onOpenSelfManagementDialog}: ChatTopBa
         </Form>
       </div>
       <div>
-        <button className="bg-blue-400 rounded-full py-3 px-4 font-mono select-none" title={fullName(self.profile)} onClick={() => onOpenSelfManagementDialog(true)}>
-          {getShort(fullName(self.profile))}
-        </button>
+        <ProfilePicture profile={self.profile} onClick={() => onOpenSelfManagementDialog(true)}/>
       </div>
     </div>);
 }
