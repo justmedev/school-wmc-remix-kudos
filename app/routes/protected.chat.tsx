@@ -15,6 +15,7 @@ import DialogSelfManagement from "~/components/dialogSelfManagement";
 import DialogMessageCreation, { DialogMessageCreationData } from "~/components/dialogMessageCreation";
 import ChatTopBar from "~/components/chatTopBar";
 import ProfilePicture from "~/components/profilePicture";
+import { useRevalidateOnInterval } from "~/helpers/useRevalidate";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const session = await getSession(request.headers.get("Cookie"));
@@ -97,6 +98,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 type KudosWithProfiles = Kudos & { authorProfile: Profile, receiverProfile: Profile };
 
 export default function ProtectedChat() {
+  useRevalidateOnInterval({enabled: true});
   const { users, self, kudos, recentKudos } = useLoaderData<typeof loader>() as unknown as {
     users: Profile[],
     self: UserWithProfile
