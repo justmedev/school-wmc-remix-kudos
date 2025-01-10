@@ -9,7 +9,7 @@ COPY . .
 RUN yarn build
 
 
-FROM node:23.6-alpine3.20 as builder
+FROM node:23.6-alpine3.20 as runner
 
 WORKDIR /app
 COPY yarn.lock package.json ./
