@@ -1,4 +1,4 @@
-yourdomain.example.com {
+localhost {
     # Reverse proxy to Remix server
     reverse_proxy remix-app:3000 {
         header_up Host {host}

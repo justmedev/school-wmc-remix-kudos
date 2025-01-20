@@ -4,3 +4,7 @@ node_modules
 /build
 .env
 /public/up-profile-pics/
+
+# Docker
+docker-container
+.docker.env

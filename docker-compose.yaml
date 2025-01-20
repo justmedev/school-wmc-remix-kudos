@@ -1,14 +1,36 @@
 services:
+  db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    networks:
+      - psql
+    env_file: .docker.env
+    volumes:
+      - ./docker-container/psql:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U wmc -d wmcdb" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   remix-app:
     build: .
     restart: unless-stopped
     networks:
+      - psql
       - remix_network
     environment:
       - NODE_ENV=production
     volumes:
-      - ./prisma:/app/prisma
-    env_file: .env
+      - ./docker-container/prisma:/app/prisma
+      - ./docker-container/uploads:/app/public/up-profile-pics
+    env_file: .docker.env
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    depends_on:
+      db:
+        condition: service_healthy
 
   caddy:
     image: caddy:2.9.1-alpine
@@ -26,6 +48,8 @@ services:
       - remix-app
 
 networks:
+  psql:
+    driver: bridge
   remix_network:
     driver: bridge
 
