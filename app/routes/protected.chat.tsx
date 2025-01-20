@@ -1,9 +1,9 @@
 import { json, LoaderFunctionArgs } from "@remix-run/node";
 import { getUserByJWT, isJWTValid, UserWithProfile } from "~/.server/auth";
-import { Form, redirect, useLoaderData } from "@remix-run/react";
+import { Form, redirect, useFetcher, useLoaderData, useLocation } from "@remix-run/react";
 import { getSession } from "~/sessions";
 import "~/components/chatStyle.css";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaCircleXmark } from "react-icons/fa6";
 import { prisma } from "~/.server/prisma";
 import { Kudos, Prisma, Profile } from "@prisma/client";
@@ -15,7 +15,6 @@ import DialogSelfManagement from "~/components/dialogSelfManagement";
 import DialogMessageCreation, { DialogMessageCreationData } from "~/components/dialogMessageCreation";
 import ChatTopBar from "~/components/chatTopBar";
 import ProfilePicture from "~/components/profilePicture";
-import { useRevalidateOnInterval } from "~/helpers/useRevalidate";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const session = await getSession(request.headers.get("Cookie"));
@@ -97,14 +96,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 type KudosWithProfiles = Kudos & { authorProfile: Profile, receiverProfile: Profile };
 
+interface LoaderResponse {
+  users: Profile[],
+  self: UserWithProfile
+  kudos: KudosWithProfiles[],
+  recentKudos: KudosWithProfiles[],
+}
+
 export default function ProtectedChat() {
-  useRevalidateOnInterval({enabled: true});
-  const { users, self, kudos, recentKudos } = useLoaderData<typeof loader>() as unknown as {
-    users: Profile[],
-    self: UserWithProfile
-    kudos: KudosWithProfiles[],
-    recentKudos: KudosWithProfiles[],
-  }
+  const fromLoader = useLoaderData<typeof loader>() as unknown as LoaderResponse;
+  useEffect(() => setData(fromLoader), [fromLoader]);
+  const [data, setData] = useState<LoaderResponse>(fromLoader);
 
   const [dialogMessageCreationData, setDialogMessageCreationData] = useState<DialogMessageCreationData | null>(null)
   const [dialogSelfOpen, setDialogSelfOpen] = useState(false);
@@ -124,6 +126,26 @@ export default function ProtectedChat() {
     confettiController.current = conductor;
   };
 
+  const location = useLocation()
+  const fetcher = useFetcher();
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetcher.load(location.pathname + location.search);
+      }
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [fetcher, location.pathname, location.search]);
+
+  useEffect(() => {
+    if (fetcher.data) {
+      console.log("new fetcher data:", fetcher.data)
+      setData(fetcher.data as LoaderResponse);
+    }
+  }, [fetcher.data]);
+
   return (
     <>
       <div className="grid grid-cols-3 grid-rows-2 h-full w-full">
@@ -131,10 +153,10 @@ export default function ProtectedChat() {
           My Team
         </div>
 
-        <ChatTopBar self={self} onOpenSelfManagementDialog={setDialogSelfOpen}/>
+        <ChatTopBar self={data.self} onOpenSelfManagementDialog={setDialogSelfOpen}/>
 
         <div className="bg-gray-600 flex flex-col items-center">
-          {users.map((profile, i) =>
+          {data.users.map((profile, i) =>
             <button className={`w-full flex justify-center ${i % 2 === 0 ? "bg-gray-500" : ""} py-2 select-none cursor-pointer`} title={fullName(profile)} key={i} onClick={() => {
               setDialogMessageCreationData({ profile: profile })
             }}>
@@ -144,13 +166,13 @@ export default function ProtectedChat() {
         </div>
 
         <div className="bg-gray-700 row-span-2 overflow-scroll w-full h-full">
-          {kudos.map(kudo => <div key={kudo.id}>
+          {data.kudos.map(kudo => <div key={kudo.id}>
             <Message onClick={() => {
               confettiText.current = kudo.emoji
               confettiController.current?.run({ duration: 1_000, delay: 50, speed: 25 })
             }} author={kudo.authorProfile} message={kudo.message} emoji={kudo.emoji} backgroundColor={kudo.backgroundColor as ColorOptions} textColor={kudo.textColor as ColorOptions}/>
           </div>)}
-          {kudos.length > 0 ?
+          {data.kudos.length > 0 ?
             null :
             <div className="flex flex-col items-center justify-center h-1/3 text-gray-400">
               <FaCircleXmark/>
@@ -162,7 +184,7 @@ export default function ProtectedChat() {
         <div className="bg-gray-800 row-span-2 flex gap-2 flex-col items-center pt-2 overflow-scroll">
           <div className="text-lg font-medium text-blue-600">Recent Kudos</div>
           {
-            recentKudos.map(kudo => (
+            data.recentKudos.map(kudo => (
               <ProfilePicture profile={kudo.receiverProfile} key={kudo.id} emoji={kudo.emoji} size="lg"/>
             ))
           }
@@ -176,7 +198,7 @@ export default function ProtectedChat() {
       </div>
 
       <DialogMessageCreation data={dialogMessageCreationData} setData={setDialogMessageCreationData}/>
-      <DialogSelfManagement self={self} open={dialogSelfOpen} setOpen={setDialogSelfOpen}/>
+      <DialogSelfManagement self={data.self} open={dialogSelfOpen} setOpen={setDialogSelfOpen}/>
 
       <Pride onInit={onInitHandler} decorateOptions={confettiOptions}/>
     </>

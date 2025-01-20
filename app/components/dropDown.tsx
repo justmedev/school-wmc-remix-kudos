@@ -1,4 +1,4 @@
-import { ChangeEventHandler, FormEventHandler, ReactNode } from "react";
+import { ChangeEventHandler, ReactNode } from "react";
 
 interface DropdownProps {
   name?: string;
@@ -8,8 +8,7 @@ interface DropdownProps {
 
   className?: string;
 
-  onChange?: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
-  onSubmit?: FormEventHandler<HTMLInputElement | HTMLTextAreaElement>;
+  onChange?: ChangeEventHandler<HTMLSelectElement>;
 
   children?: ReactNode;
 }
@@ -19,7 +18,8 @@ export default function Dropdown(props: DropdownProps) {
     <div className="flex flex-col object-fill">
       <div hidden={!props.label} className={`-mb-0.5 text-gray-300 ${props.label ? props.className ?? "" : ""}`}>{props.label}</div>
       <select className={`${!props.label ? props.className ?? "" : ""} bg-gray-700 rounded text-gray-400 outline-none p-2 focus:text-white focus:bg-gradient-to-r focus:from-blue-900 focus:outline-indigo-500`}
-              defaultValue={props.defaultValue} value={props.value} name={props.name}>
+              defaultValue={props.defaultValue} value={props.value} name={props.name}
+              onChange={(e) => props.onChange?.call(null, e)}>
         {props.children}
       </select>
     </div>
